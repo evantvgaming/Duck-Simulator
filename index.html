@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Duck Simulator V18</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="start" class="screen">
+  <div class="hero">
+    <div>
+      <h1>Duck Simulator V18</h1>
+      <div class="badge">CLEAN REBOOT</div>
+      <p>Un jeu plus propre : moins de boutons inutiles, plus d'actions réelles. Cuisine, douche, chambre, magasin, jobs en mini-jeu et frigo rapide.</p>
+      <button id="play" class="primary">PLAY</button>
+      <button id="devOpenStart" class="dev">Mode dev</button>
+    </div>
+    <div class="heroArt">
+      <div class="sun"></div>
+      <div class="miniHouse">
+        <div class="roof"></div>
+        <div class="body"><span></span><b></b><span></span></div>
+      </div>
+      <div class="heroDuck">🦆</div>
+    </div>
+  </div>
+</section>
+
+<section id="saveSelect" class="screen hidden">
+  <div class="card wide">
+    <h2>Sauvegardes</h2>
+    <div id="saveSlots"></div>
+    <button id="backStart" class="danger">Retour</button>
+  </div>
+</section>
+
+<section id="setup" class="screen hidden">
+  <div class="card">
+    <h2>Crée ton canard</h2>
+    <input id="duckName" value="Coincoin" placeholder="Nom du canard">
+    <input id="duckColor" type="color" value="#ffd84d">
+    <button id="create" class="primary">Commencer</button>
+  </div>
+</section>
+
+<section id="game" class="hidden">
+  <header>
+    <h2 id="title">Coincoin</h2>
+    <strong><span id="money">500</span> €</strong>
+  </header>
+
+  <div class="stats">
+    <label>Faim <progress id="hunger" max="100"></progress></label>
+    <label>Propreté <progress id="clean" max="100"></progress></label>
+    <label>Sommeil <progress id="sleep" max="100"></progress></label>
+    <label>Bonheur <progress id="happy" max="100"></progress></label>
+    <label>Mouillé <progress id="wet" max="100"></progress></label>
+  </div>
+
+  <div class="info">
+    <span id="age"></span>
+    <span id="stage"></span>
+    <span id="job"></span>
+    <span id="clock"></span>
+    <span id="weather"></span>
+  </div>
+
+  <nav class="cleanNav">
+    <button data-room="city">🌆 Ville</button>
+    <button data-room="living">🏠 Salon</button>
+    <button data-room="kitchen">🍳 Cuisine</button>
+    <button data-room="bath">🚿 Salle de bain</button>
+    <button data-room="bedroom">🛏️ Chambre</button>
+    <button data-room="shop">🏪 Magasin</button>
+    <button data-room="school">🏫 École</button>
+    <button id="bagBtn">🎒 Sac</button>
+    <button id="devOpenGame" class="dev">Dev</button>
+    <button id="reset" class="danger">Reset</button>
+  </nav>
+
+  <main id="room">
+    <div id="backdrop"></div>
+    <div id="objects"></div>
+    <div id="placed"></div>
+    <div id="cover" class="hidden"></div>
+    <div id="drops" class="hidden">💧💧</div>
+
+    <div id="deathScene" class="hidden">
+      <div class="deathBox">
+        <div class="grave">🪦</div>
+        <div class="ghost">👻🦆</div>
+        <h2>100 ans...</h2>
+        <p>Le canard rejoint la mare céleste.</p>
+        <button onclick="resetGame()">Recommencer</button>
+      </div>
+    </div>
+
+    <div id="duck" draggable="true">
+      <svg viewBox="0 0 260 205">
+        <ellipse class="duckPart" cx="112" cy="125" rx="75" ry="50"></ellipse>
+        <circle class="duckPart" cx="173" cy="75" r="42"></circle>
+        <circle cx="187" cy="63" r="6" fill="#111"></circle>
+        <circle cx="189" cy="61" r="2" fill="#fff"></circle>
+        <polygon points="207,80 252,96 207,112" fill="#ff8c00"></polygon>
+        <ellipse cx="80" cy="128" rx="34" ry="19" fill="rgba(255,255,255,.35)"></ellipse>
+        <path class="duckLeg" d="M80 166 Q118 184 155 166" stroke="#d99200" stroke-width="9" fill="none"></path>
+      </svg>
+    </div>
+
+    <div id="joystick">
+      <button data-move="up">▲</button>
+      <div>
+        <button data-move="left">◀</button>
+        <button data-move="run">RUN</button>
+        <button data-move="right">▶</button>
+      </div>
+      <button data-move="down">▼</button>
+    </div>
+  </main>
+
+  <section id="inventoryPanel" class="panel hidden">
+    <h3>🎒 Sac / Inventaire</h3>
+    <div id="inventory" class="inventoryGrid"></div>
+  </section>
+
+  <section class="bottom">
+    <div class="panel">
+      <h3>Actions utiles</h3>
+      <button id="quickFridge">🧊 Frigo rapide</button>
+      <button id="quickFeed">🍲 Donner repas</button>
+      <button id="jobMiniBtn">💼 Job mini-jeu</button>
+      <button id="studyBtn">🏫 Étudier</button>
+      <button id="save">💾 Sauvegarder</button>
+    </div>
+
+    <div class="panel">
+      <h3>Mini-jeux</h3>
+      <button onclick="mini('job')">💼 Job</button>
+      <button onclick="mini('food')">🥬 Nourriture</button>
+      <button onclick="mini('clean')">🧼 Nettoyage</button>
+      <button onclick="mini('school')">🏫 Contrôle</button>
+    </div>
+
+    <div class="panel">
+      <h3>Magasin rapide</h3>
+      <button onclick="buyItem('salad')">🥬 Salade 20€</button>
+      <button onclick="buyItem('bread')">🍞 Pain 15€</button>
+      <button onclick="buyItem('fish')">🐟 Poisson 35€</button>
+      <button onclick="buyItem('soap')">🧼 Savon 25€</button>
+      <button onclick="buyItem('towel')">🧺 Serviette 40€</button>
+    </div>
+  </section>
+
+  <div id="msg">Bienvenue dans Duck Simulator V18 🦆</div>
+</section>
+
+<section id="sleepOverlay" class="overlay hidden">
+  <div class="card">
+    <h2>Le canard dort 😴</h2>
+    <p id="timer"></p>
+    <button id="devOpenSleep" class="dev">Mode dev</button>
+  </div>
+</section>
+
+<section id="devOverlay" class="overlay hidden">
+  <div class="devBox">
+    <h2>Mode dev</h2>
+    <div id="devLocked">
+      <p>Code requis</p>
+      <input id="devCode" type="password" placeholder="Code">
+      <button id="devUnlock">Déverrouiller</button>
+    </div>
+    <div id="devPanel" class="hidden">
+      <label>Argent <input id="devMoney" type="number"></label>
+      <label>Âge en années <input id="devAge" type="number"></label>
+      <label>Faim <input id="devHunger" type="number" min="0" max="100"></label>
+      <label>Propreté <input id="devClean" type="number" min="0" max="100"></label>
+      <label>Sommeil <input id="devSleep" type="number" min="0" max="100"></label>
+      <label>Bonheur <input id="devHappy" type="number" min="0" max="100"></label>
+      <label>Mouillé <input id="devWet" type="number" min="0" max="100"></label>
+      <button id="devApply" class="primary">Appliquer</button>
+      <button id="devWake" class="green">Finir dodo</button>
+    </div>
+    <button id="devClose" class="danger">Fermer</button>
+  </div>
+</section>
+
+<section id="miniOverlay" class="overlay hidden">
+  <div class="miniBox">
+    <h2 id="miniTitle"></h2>
+    <p id="miniInfo"></p>
+    <div id="miniArea"></div>
+    <button id="closeMini" class="danger">Quitter</button>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
