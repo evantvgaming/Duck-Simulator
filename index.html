@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Duck Simulator V18</title>
+  <title>Duck Simulator V20</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,19 +11,17 @@
 <section id="start" class="screen">
   <div class="hero">
     <div>
-      <h1>Duck Simulator V18</h1>
-      <div class="badge">CLEAN REBOOT</div>
-      <p>Un jeu plus propre : moins de boutons inutiles, plus d'actions réelles. Cuisine, douche, chambre, magasin, jobs en mini-jeu et frigo rapide.</p>
+      <h1>Duck Simulator V20</h1>
+      <div class="badge">FINAL CANDIDATE</div>
+      <p>Version finale candidate : actions quotidiennes, cadeau du jour, missions, promos, collection rare, pièces plus utiles et vraie raison de revenir.</p>
       <button id="play" class="primary">PLAY</button>
       <button id="devOpenStart" class="dev">Mode dev</button>
     </div>
     <div class="heroArt">
       <div class="sun"></div>
-      <div class="miniHouse">
-        <div class="roof"></div>
-        <div class="body"><span></span><b></b><span></span></div>
-      </div>
+      <div class="miniHouse"><div class="roof"></div><div class="body"><span></span><b></b><span></span></div></div>
       <div class="heroDuck">🦆</div>
+      <div class="heroCar">🚗</div>
     </div>
   </div>
 </section>
@@ -57,7 +55,10 @@
     <label>Sommeil <progress id="sleep" max="100"></progress></label>
     <label>Bonheur <progress id="happy" max="100"></progress></label>
     <label>Mouillé <progress id="wet" max="100"></progress></label>
+    <label>Amour <progress id="love" max="100"></progress></label>
   </div>
+
+  <div id="dailyPanel" class="dailyPanel"></div>
 
   <div class="info">
     <span id="age"></span>
@@ -71,11 +72,13 @@
     <button data-room="city">🌆 Ville</button>
     <button data-room="living">🏠 Salon</button>
     <button data-room="kitchen">🍳 Cuisine</button>
-    <button data-room="bath">🚿 Salle de bain</button>
+    <button data-room="bath">🚿 Bain</button>
     <button data-room="bedroom">🛏️ Chambre</button>
+    <button data-room="garden">🌳 Jardin</button>
     <button data-room="shop">🏪 Magasin</button>
     <button data-room="school">🏫 École</button>
     <button id="bagBtn">🎒 Sac</button>
+    <button id="settingsBtn">⚙️ Réglages</button>
     <button id="devOpenGame" class="dev">Dev</button>
     <button id="reset" class="danger">Reset</button>
   </nav>
@@ -84,6 +87,7 @@
     <div id="backdrop"></div>
     <div id="objects"></div>
     <div id="placed"></div>
+    <div id="familyLayer"></div>
     <div id="cover" class="hidden"></div>
     <div id="drops" class="hidden">💧💧</div>
 
@@ -120,6 +124,8 @@
     </div>
   </main>
 
+  <section id="roomActions" class="panel roomActions"></section>
+
   <section id="inventoryPanel" class="panel hidden">
     <h3>🎒 Sac / Inventaire</h3>
     <div id="inventory" class="inventoryGrid"></div>
@@ -127,33 +133,60 @@
 
   <section class="bottom">
     <div class="panel">
-      <h3>Actions utiles</h3>
+      <h3>Actions essentielles</h3>
       <button id="quickFridge">🧊 Frigo rapide</button>
       <button id="quickFeed">🍲 Donner repas</button>
-      <button id="jobMiniBtn">💼 Job mini-jeu</button>
-      <button id="studyBtn">🏫 Étudier</button>
+      <button onclick="mini('job')">💼 Job mini-jeu</button>
+      <button onclick="studyQuiz()">🏫 Contrôle</button>
       <button id="save">💾 Sauvegarder</button>
     </div>
 
     <div class="panel">
-      <h3>Mini-jeux</h3>
-      <button onclick="mini('job')">💼 Job</button>
-      <button onclick="mini('food')">🥬 Nourriture</button>
-      <button onclick="mini('clean')">🧼 Nettoyage</button>
-      <button onclick="mini('school')">🏫 Contrôle</button>
+      <h3>Vie</h3>
+      <button onclick="openLife('date')">💘 DuckDate</button>
+      <button onclick="openLife('family')">👶 Famille</button>
+      <button onclick="openLife('pet')">🐶 Animal</button>
+      <button onclick="openLife('car')">🚗 Voiture</button>
+      <button onclick="openLife('tv')">📺 TV</button>
     </div>
 
     <div class="panel">
-      <h3>Magasin rapide</h3>
-      <button onclick="buyItem('salad')">🥬 Salade 20€</button>
-      <button onclick="buyItem('bread')">🍞 Pain 15€</button>
-      <button onclick="buyItem('fish')">🐟 Poisson 35€</button>
-      <button onclick="buyItem('soap')">🧼 Savon 25€</button>
-      <button onclick="buyItem('towel')">🧺 Serviette 40€</button>
+      <h3>Progression</h3>
+      <button onclick="showAchievements()">🏆 Succès</button>
+      <button onclick="showJournal()">📖 Journal</button>
+      <button onclick="showDaily()">📅 Quotidien</button>
+      <button onclick="claimDailyGift()">🎁 Cadeau</button>
+      <button onclick="showCollection()">👑 Collection</button>
+      <button onclick="randomWeather()">🌦️ Météo</button>
+      <button onclick="birthday()">🎂 Anniversaire</button>
     </div>
   </section>
 
-  <div id="msg">Bienvenue dans Duck Simulator V18 🦆</div>
+  <div id="msg">Bienvenue dans Duck Simulator V20 🦆</div>
+</section>
+
+<section id="modalOverlay" class="overlay hidden">
+  <div class="modalBox">
+    <h2 id="modalTitle"></h2>
+    <div id="modalContent"></div>
+    <button id="closeModal" class="danger">Fermer</button>
+  </div>
+</section>
+
+<section id="driveOverlay" class="overlay hidden">
+  <div class="miniBox">
+    <h2>🚗 Voiture</h2>
+    <p>Flèches : gauche/droite. Haut : accélérer. Bas : freiner.</p>
+    <div id="driveArea">
+      <div id="roadLine"></div>
+      <div id="carPlayer">🚗</div>
+      <div class="cone" style="left:25%;top:120px">🚧</div>
+      <div class="cone" style="left:65%;top:230px">🚧</div>
+      <div id="gasStation">⛽</div>
+      <div id="finishFlag">🏁</div>
+    </div>
+    <button id="driveClose" class="danger">Quitter</button>
+  </div>
 </section>
 
 <section id="sleepOverlay" class="overlay hidden">
